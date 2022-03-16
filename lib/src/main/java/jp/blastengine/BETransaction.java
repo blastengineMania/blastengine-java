@@ -14,12 +14,16 @@ public class BETransaction {
 	public Integer deliverId;
 	protected BEMailAddress from;
 	protected List<String> to = new ArrayList<String>();
+	protected List<String> cc = new ArrayList<String>();
+	protected List<String> bcc = new ArrayList<String>();
 	public String subject;
 	@JsonProperty("text_part")
 	public String text;
 	@JsonProperty("html_part")
 	public String html;
 	public String encode = "UTF-8";
+	@JsonProperty("insert_code")
+	public List<Map<String, String>> insertCode = new ArrayList<Map<String, String>>();
 	@JsonIgnore
 	public List<String> attachments = new ArrayList<String>();
 
@@ -45,6 +49,28 @@ public class BETransaction {
 
 	public String getTo() {
 		return String.join(",", this.to);
+	}
+
+	public void addCc(String mailAddress) {
+		this.cc.add(mailAddress);
+	}
+
+	public List<String> getCc() {
+		return this.cc;
+	}
+
+	public void addBcc(String mailAddress) {
+		this.bcc.add(mailAddress);
+	}
+
+	public List<String> getBcc() {
+		return this.bcc;
+	}
+
+	public void addInsertCode(String key, String value) {
+		Map<String, String> map = new HashMap<>();
+		map.put(key, value);
+		this.insertCode.add(map);
 	}
 
 	protected Integer createResponse(String json) throws BEError {

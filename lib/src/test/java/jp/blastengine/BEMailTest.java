@@ -29,7 +29,9 @@ import java.io.IOException;
 
 // JSON処理用
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 // 添付ファイル用
 import java.io.*;
@@ -55,6 +57,7 @@ public class BEMailTest {
 			Integer deliveryId = transaction.send();
 			Assert.assertTrue(deliveryId > 0);
 		} catch (BEError e) {
+			System.out.println(e.getMessage());
 			Assert.assertTrue(false);
 		}
 	}
@@ -76,81 +79,29 @@ public class BEMailTest {
 			Integer deliveryId = transaction.send();
 			Assert.assertTrue(deliveryId > 0);
 		} catch (BEError e) {
+			System.out.println(e.getMessage());
 			Assert.assertTrue(false);
 		}
 	}
 
-	@Test public void beMailTestAttachement() {
-		BEMail mail = new BEMail();
-		String username = this.dotenv.get("USER_NAME");
-		String api_key = this.dotenv.get("API_KEY");
-		mail.subject = "テストメール";
-		mail.encode = "UTF-8";
-		mail.text_part = "テストメールの本文（テキスト）";
-		mail.html_part = "<h1>テストメールの本文（HTML）</h1>";
-		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
-		mail.from = fromAddress;
-		mail.to = this.dotenv.get("TO");
+	@Test public void beMailTestInserCode() {
 		try {
-				ObjectMapper mapper = new ObjectMapper();
-				String json = mapper.writeValueAsString(mail);
-				String digest = DigestUtils.sha256Hex(username + api_key);
-				String token = new String(Base64.getEncoder().encode(digest.toLowerCase().getBytes()));
-				final Path path = Paths.get("../README.md");
-				final String fileName = path.getFileName().toString();
-				final byte[] bytes = Files.readAllBytes(path);
-				
-				MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-				
-        ContentBody attach = new ByteArrayBody(bytes, ContentType.create(Files.probeContentType(path)), fileName);
-        ContentBody jsonEntity = new ByteArrayBody(json.getBytes(), ContentType.APPLICATION_JSON, "data");
-				builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        builder.addPart("file", attach);
-        builder.addPart("data", jsonEntity);
-				HttpEntity httpEntity = builder.build();
-
-				HttpPost httpPost = new HttpPost("https://app.engn.jp/api/v1/deliveries/transaction");
-				httpPost.setHeader("Authorization", "Bearer " + token);
-        httpPost.setEntity(httpEntity);
-
-				HttpClient client = HttpClientBuilder.create().build();
-        // HttpResponse response = client.execute(httpPost);
-				// System.out.println(EntityUtils.toString(response.getEntity()));
+			BETransaction transaction = new BETransaction();
+			transaction.addInsertCode("test1", "value1");
+			transaction.addInsertCode("test2", "value2");
+			ObjectMapper mapper = new ObjectMapper();
+			String json = mapper.writeValueAsString(transaction);
+			Map<String, Object> map = mapper.readValue(json, new TypeReference<Map<String, Object>>(){});
+			if (map.containsKey("insert_code")) {
+				String str = mapper.writeValueAsString(map.get("insert_code"));
+				Assert.assertEquals(str, "[{\"test1\":\"value1\"},{\"test2\":\"value2\"}]");
+			} else {
+				Assert.assertTrue(false);
+			}
+		} catch (JsonMappingException e) {
+			System.out.println(e.getMessage());
 		} catch (JsonProcessingException e) {
-				System.out.println(e);
-		} catch (IOException e) {
-				System.out.println(e);
+			System.out.println(e.getMessage());
 		}
 	}
-
-	public void someLibraryMethodReturnsTrue() {
-			BEMail mail = new BEMail();
-			String username = this.dotenv.get("USER_NAME");
-			String api_key = this.dotenv.get("API_KEY");
-			mail.subject = "テストメール";
-			mail.encode = "UTF-8";
-			mail.text_part = "テストメールの本文（テキスト）";
-			mail.html_part = "<h1>テストメールの本文（HTML）</h1>";
-			BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
-			mail.from = fromAddress;
-			mail.to = this.dotenv.get("TO");
-			try {
-					ObjectMapper mapper = new ObjectMapper();
-					String json = mapper.writeValueAsString(mail);
-					StringEntity entity = new StringEntity(json, "UTF-8");
-					String digest = DigestUtils.sha256Hex(username + api_key);
-					String token = new String(Base64.getEncoder().encode(digest.toLowerCase().getBytes()));
-					HttpPost httpPost = new HttpPost("https://app.engn.jp/api/v1/deliveries/transaction");
-					httpPost.setHeader("Content-type", "application/json; charset=UTF-8");
-					httpPost.setHeader("Authorization", "Bearer " + token);
-					httpPost.setEntity(entity);
-					HttpClient client = HttpClientBuilder.create().build();
-					// CloseableHttpResponse response = client.execute(httpPost);
-					// System.out.println(EntityUtils.toString(response.getEntity()));
-					// client.close();
-			} catch (JsonProcessingException e) {
-					System.out.println(e);
-			}
-	}
-
 }
