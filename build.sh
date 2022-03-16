@@ -1,5 +1,6 @@
 #!/bin/sh
 
 rm *.jar
-gradle build
-cp lib/build/libs/blastengine-0.0.1-SNAPSHOT.jar .
+rm lib/build/libs/*.jar
+gradle shadowJar
+cp blastengine-included.jar ../sample/app/libs/blastengine.jar

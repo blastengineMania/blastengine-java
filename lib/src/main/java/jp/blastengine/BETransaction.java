@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.http.client.ClientProtocolException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-class BETransaction {
+public class BETransaction {
 	@JsonIgnore
 	public static BEClient client;
 	protected BEMailAddress from;
