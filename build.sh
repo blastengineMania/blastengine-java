@@ -3,4 +3,5 @@
 rm *.jar
 rm lib/build/libs/*.jar
 gradle shadowJar
-cp blastengine-included.jar ../sample/app/libs/blastengine.jar
+cp lib/build/libs/*.jar .
+cp *.jar ../sample/app/libs/blastengine.jar

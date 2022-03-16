@@ -11,7 +11,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-version '0.0.1-SNAPSHOT'
+version '0.0.2'
 
 apply plugin: 'java'
 
@@ -42,4 +42,8 @@ jar {
         attributes 'Main-Class': 'jp.blastengine.BEClient'
     }
     baseName 'blastengine'
+}
+
+shadowJar{
+    archiveFileName = "blastengine-${version}.${extension}"
 }

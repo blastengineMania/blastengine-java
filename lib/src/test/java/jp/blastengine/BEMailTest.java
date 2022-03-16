@@ -40,7 +40,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 public class BEMailTest {
 	protected Dotenv dotenv = Dotenv.load();
-	@Test public void beMailTestSend() {
+	@Test public void beMailTestSendTextMail() {
 		String username = this.dotenv.get("USER_NAME");
 		String api_key = this.dotenv.get("API_KEY");
 		BEClient.initialize(username, api_key);
@@ -48,6 +48,27 @@ public class BEMailTest {
 		transaction.subject ="Test mail from blastengine";
 		transaction.text = "Mail body";
 		transaction.html = "<h1>Hello, from blastengine</h1>";
+		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
+		transaction.setFrom(fromAddress);
+		transaction.addTo(this.dotenv.get("TO"));
+		try {
+			Integer deliveryId = transaction.send();
+			Assert.assertTrue(deliveryId > 0);
+		} catch (BEError e) {
+			Assert.assertTrue(false);
+		}
+	}
+
+	@Test public void beMailTestSendAttachmentMail() {
+		String username = this.dotenv.get("USER_NAME");
+		String api_key = this.dotenv.get("API_KEY");
+		BEClient.initialize(username, api_key);
+		BETransaction transaction = new BETransaction();
+		transaction.subject ="Test mail from blastengine";
+		transaction.text = "Mail body";
+		transaction.html = "<h1>Hello, from blastengine</h1>";
+		transaction.attachments.add("../README.md");
+		transaction.attachments.add("../LICENSE");
 		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
 		transaction.setFrom(fromAddress);
 		transaction.addTo(this.dotenv.get("TO"));

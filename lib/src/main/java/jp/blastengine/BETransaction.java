@@ -1,17 +1,17 @@
 package jp.blastengine;
-import java.io.IOException;
 import java.util.*;
 // For JSON
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.http.client.ClientProtocolException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 public class BETransaction {
 	@JsonIgnore
 	public static BEClient client;
+	@JsonIgnore
+	public Integer deliverId;
 	protected BEMailAddress from;
 	protected List<String> to = new ArrayList<String>();
 	public String subject;
@@ -20,6 +20,8 @@ public class BETransaction {
 	@JsonProperty("html_part")
 	public String html;
 	public String encode = "UTF-8";
+	@JsonIgnore
+	public List<String> attachments = new ArrayList<String>();
 
 	public void setFrom(BEMailAddress mailAddress) {
 		this.from = mailAddress;
@@ -45,12 +47,10 @@ public class BETransaction {
 		return String.join(",", this.to);
 	}
 
-	public Integer send() throws BEError {
+	protected Integer createResponse(String json) throws BEError {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			String json = mapper.writeValueAsString(this);
-			String responseJson = BETransaction.client.getHttpPostResponse("/v1/deliveries/transaction", json);
-			Map<String, Object> map = mapper.readValue(responseJson, new TypeReference<Map<String, Object>>(){});
+			Map<String, Object> map = mapper.readValue(json, new TypeReference<Map<String, Object>>(){});
 			if (map.containsKey("error_messages")) {
 				String errorJson = mapper.writeValueAsString(map.get("error_messages"));
 				Map<String, List<String>> errorObject = mapper.readValue(errorJson, new TypeReference<Map<String, List<String>>>(){});
@@ -61,13 +61,48 @@ public class BETransaction {
 					throw new BEError("[blastengine response error: " + key + "] " + String.join(",",messages));
 				}
 			}
-			return (Integer) map.get("delivery_id");
+			this.deliverId = (Integer) map.get("delivery_id");
+			return this.deliverId;
 		} catch (NullPointerException e) {
 			throw new BEError("[NullPointerException] " + e.getMessage());
 		} catch (ClassCastException e) {
 			throw new BEError("[ClassCastException] " + e.getMessage());
 		} catch (JsonProcessingException e) {
 			throw new BEError("[JsonProcessingException] " + e.getMessage());
+		}
+	}
+
+	public Integer sendTextMail() throws BEError {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			String json = mapper.writeValueAsString(this);
+			String responseJson = BETransaction.client.getHttpPostResponse("/v1/deliveries/transaction", json);
+			return this.createResponse(responseJson);
+		} catch (JsonProcessingException e) {
+			throw new BEError("[JsonProcessingException] " + e.getMessage());
+		}
+	}
+
+	public Integer sendAttachmentMail() throws BEError {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			String json = mapper.writeValueAsString(this);
+			String responseJson = BETransaction.client.getHttpPostResponse("/v1/deliveries/transaction", json, this.attachments);
+			return this.createResponse(responseJson);
+		} catch (JsonProcessingException e) {
+			throw new BEError("[JsonProcessingException] " + e.getMessage());
+		}
+	}
+
+	public Integer send() throws BEError {
+		try {
+			if (this.attachments.size() == 0) {
+				return this.sendTextMail();
+			} else {
+				return this.sendAttachmentMail();
+			}
+		} catch (BEError e) {
+			throw e;
 		}
 	}
 }

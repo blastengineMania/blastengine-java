@@ -2,15 +2,26 @@ package jp.blastengine;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.Iterator;
+import java.util.List;
 
 public class BEClient {
 	protected String userName;
@@ -31,6 +42,7 @@ public class BEClient {
 		return new String(Base64.getEncoder().encode(digest.toLowerCase().getBytes()));
 	}
 
+	// Send HTTP Post with JSON
 	public String getHttpPostResponse(String path, String json) throws BEError {
 		try {
 			HttpPost httpPost = new HttpPost("https://app.engn.jp/api" + path);
@@ -38,6 +50,41 @@ public class BEClient {
 			httpPost.setHeader("Authorization", "Bearer " + this.getToken());
 			StringEntity entity = new StringEntity(json, "UTF-8");
 			httpPost.setEntity(entity);
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpResponse response = client.execute(httpPost);
+			return EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			throw new BEError("[ClientProtocolException] " + e.getMessage());
+		} catch (IOException e) {
+			throw new BEError("[IOException] " + e.getMessage());
+		}
+	}
+
+	// Send HTTP Post with binary files
+	public String getHttpPostResponse(String path, String json, List<String> attachments) throws BEError {
+		try {
+			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+			ContentBody jsonEntity = new ByteArrayBody(json.getBytes(), ContentType.APPLICATION_JSON, "data");
+			builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+			builder.addPart("data", jsonEntity);
+			Iterator<String> attachmentIterator = attachments.iterator();
+			while (attachmentIterator.hasNext()) {
+				String attachmentFilePath = attachmentIterator.next();
+				Path attachmentPath = Paths.get(attachmentFilePath);
+				String fileName = attachmentPath.getFileName().toString();
+				byte[] bytes = Files.readAllBytes(attachmentPath);
+				String contentType = Files.probeContentType(attachmentPath);
+				if (contentType == null) {
+					contentType = "application/octet-stream";
+				}
+				ContentBody attach = new ByteArrayBody(bytes, ContentType.create(contentType), fileName);
+				builder.addPart("file", attach);
+			}
+
+			HttpEntity httpEntity = builder.build();
+			HttpPost httpPost = new HttpPost("https://app.engn.jp/api" + path);
+			httpPost.setHeader("Authorization", "Bearer " + this.getToken());
+			httpPost.setEntity(httpEntity);
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpResponse response = client.execute(httpPost);
 			return EntityUtils.toString(response.getEntity());
