@@ -12,6 +12,7 @@
 ```java
 import jp.blastengine.BEClient;
 import jp.blastengine.BETransaction;
+import jp.blastengine.BEBulk;
 import jp.blastengine.BEMailAddress;
 import jp.blastengine.BEError;
 ```
