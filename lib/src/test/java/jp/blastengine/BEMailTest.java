@@ -1,31 +1,6 @@
 package jp.blastengine;
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.*;
-
-// トークン生成用
-import org.apache.commons.codec.digest.DigestUtils;
-import java.util.Base64;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-
-// HTTPリクエスト用
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.ByteArrayBody;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.entity.StringEntity;
-import java.io.IOException;
 
 // JSON処理用
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,8 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 // 添付ファイル用
-import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 
 import io.github.cdimascio.dotenv.Dotenv;

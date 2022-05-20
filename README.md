@@ -47,6 +47,42 @@ try {
 }
 ```
 
+### Bulk email
+
+#### Create and set data
+
+```java
+BEBulk bulk = new BEBulk();
+bulk.subject ="Test mail from blastengine";
+bulk.text = "Mail body";
+bulk.html = "<h1>Hello, from blastengine __name__</h1>";
+BEMailAddress fromAddress = new BEMailAddress("info@example.com", "Admin");
+bulk.setFrom(fromAddress);
+Integer deliveryId = bulk.register();
+```
+
+#### Add recipients
+
+```java
+Map<String, String> map = new HashMap<>();
+map.put("name", "User 1");
+bulk.addTo("user1@moongift.jp", map);
+map.put("name", "User 2");
+bulk.addTo("user2@moongift.jp", map);
+bulk.update();
+```
+
+#### Reservation email
+
+```java
+// Immediately
+bulk.send();
+// Reserve
+Calendar cal = Calendar.getInstance();
+cal.add(Calendar.DAY_OF_MONTH, 1);
+bulk.send(cal.getTime());
+```
+
 ## License
 
 MIT License.

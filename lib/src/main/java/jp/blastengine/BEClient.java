@@ -1,7 +1,10 @@
 package jp.blastengine;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -35,6 +38,7 @@ public class BEClient {
 	static public void initialize(String userName, String apiKey) {
 		BEClient client = new BEClient(userName, apiKey);
 		BETransaction.client = client;
+		BEBulk.client = client;
 	}
 
 	public String getToken() {
@@ -87,6 +91,58 @@ public class BEClient {
 			httpPost.setEntity(httpEntity);
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpResponse response = client.execute(httpPost);
+			return EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			throw new BEError("[ClientProtocolException] " + e.getMessage());
+		} catch (IOException e) {
+			throw new BEError("[IOException] " + e.getMessage());
+		}
+	}
+
+	// Send HTTP Put with JSON
+	public String getHttpPutResponse(String path, String json) throws BEError {
+		try {
+			HttpPut httpPut = new HttpPut("https://app.engn.jp/api" + path);
+			httpPut.setHeader("Content-type", "application/json; charset=UTF-8");
+			httpPut.setHeader("Authorization", "Bearer " + this.getToken());
+			StringEntity entity = new StringEntity(json, "UTF-8");
+			httpPut.setEntity(entity);
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpResponse response = client.execute(httpPut);
+			return EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			throw new BEError("[ClientProtocolException] " + e.getMessage());
+		} catch (IOException e) {
+			throw new BEError("[IOException] " + e.getMessage());
+		}
+	}
+
+	// Send HTTP Put with JSON
+	public String getHttpPatchResponse(String path, String json) throws BEError {
+		try {
+			HttpPatch httpPatch = new HttpPatch("https://app.engn.jp/api" + path);
+			httpPatch.setHeader("Content-type", "application/json; charset=UTF-8");
+			httpPatch.setHeader("Authorization", "Bearer " + this.getToken());
+			StringEntity entity = new StringEntity(json, "UTF-8");
+			httpPatch.setEntity(entity);
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpResponse response = client.execute(httpPatch);
+			return EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			throw new BEError("[ClientProtocolException] " + e.getMessage());
+		} catch (IOException e) {
+			throw new BEError("[IOException] " + e.getMessage());
+		}
+	}
+
+	// Send HTTP Put with JSON
+	public String getHttpDeleteResponse(String path) throws BEError {
+		try {
+			HttpDelete httpDelete = new HttpDelete("https://app.engn.jp/api" + path);
+			httpDelete.setHeader("Content-type", "application/json; charset=UTF-8");
+			httpDelete.setHeader("Authorization", "Bearer " + this.getToken());
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpResponse response = client.execute(httpDelete);
 			return EntityUtils.toString(response.getEntity());
 		} catch (ClientProtocolException e) {
 			throw new BEError("[ClientProtocolException] " + e.getMessage());
