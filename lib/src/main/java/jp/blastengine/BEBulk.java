@@ -29,30 +29,39 @@ public class BEBulk extends BEBase {
 		this.to.add(new BEBulkAddress(mailAddress, insertCode));
 	}
 
-	public BEJob importFromFile(String path) throws BEError {
+	public BEJob importFile(String path) throws BEError {
 		BEJob job = BEJob.emailUpload(this, path, false, false);
 		return this._waitJob(job);
 	}
 
-	public BEJob importFromFile(String path, boolean ignoreErrors) throws BEError {
+	public BEJob importFile(String path, boolean ignoreErrors) throws BEError {
 		BEJob job = BEJob.emailUpload(this, path, ignoreErrors, false);
 		return this._waitJob(job);
 	}
 
-	public BEJob importFromFile(String path, boolean ignoreErrors, boolean immediate) throws BEError {
+	public BEJob importFile(String path, boolean ignoreErrors, boolean immediate) throws BEError {
 		BEJob job = BEJob.emailUpload(this, path, ignoreErrors, immediate);
 		return this._waitJob(job);
 	}
 
+	public BEJob importList() throws BEError {
+		BEJob job = BEJob.emailUpload(this, this.to, true, false);
+		return this._waitJob(job);
+	}
+
 	public BEJob _waitJob(BEJob job) throws BEError {
-		while (job.finish() == false) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				throw new BEError("[InterruptedException] " + e.getMessage());
+		try {
+			while (job.finish() == false) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					throw new BEError("[InterruptedException] " + e.getMessage());
+				}
 			}
+			return job;
+		} catch (BEError e) {
+			throw new BEError("[BEError] " + e.getMessage());
 		}
-		return job;
 	}
 
 	public List<BEBulkAddress> getTo() {
@@ -73,6 +82,13 @@ public class BEBulk extends BEBase {
 
 	public Integer update() throws BEError {
 		try {
+			if (this.to.size() == 0) {
+				throw new BEError("[BEError] No recipients");
+			}
+			if (this.to.size() > 50) {
+				BEJob job = this.importList();
+				return this.deliveryId;
+			}
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.addMixIn(BEBulk.class, BEBulkUpdateView.class);
 			String json = mapper.writeValueAsString(this);

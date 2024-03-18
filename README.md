@@ -84,6 +84,21 @@ cal.add(Calendar.DAY_OF_MONTH, 1);
 bulk.send(cal.getTime());
 ```
 
+#### Add recipients by CSV
+
+```java
+bulk.importFile("path/to/csv"); // Import if there is no error in the CSV file. Only import action.
+bulk.importFile("path/to/csv", true); // Skip error line and import valid line. And only import action.
+BEJob job = bulk.importFile("path/to/csv", true, true); // Skip error line and import valid line, and send email immediately. 
+System.out.println(job.totalCount); // Total number of recipients
+System.out.println(job.successCount); // Number of successful recipients
+System.out.println(job.failedCount); // Number of failed recipients
+List<Map<String, String>> errors = job.errors(); // Get error details
+if (errors != null) {
+	System.out.println(errors);
+}
+```
+
 ## License
 
 MIT License.

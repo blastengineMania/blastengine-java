@@ -11,7 +11,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-version '0.0.4'
+version '0.0.5'
 
 apply plugin: 'java'
 
@@ -48,4 +48,10 @@ jar {
 
 shadowJar{
     archiveFileName = "blastengine-${version}.jar"
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+    }
 }

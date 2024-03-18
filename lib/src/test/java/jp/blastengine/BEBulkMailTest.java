@@ -74,7 +74,7 @@ public class BEBulkMailTest {
 			Integer deliveryId = bulk.register();
 			Assert.assertTrue(deliveryId > 0);
 			String basePath = "./src/test/java/jp/blastengine";
-			BEJob job = bulk.importFromFile(basePath + "/example.csv", true);
+			BEJob job = bulk.importFile(basePath + "/example.csv", true);
 			// bulk.send();
 			System.out.println(job.totalCount);
 			System.out.println(job.successCount);
@@ -94,22 +94,24 @@ public class BEBulkMailTest {
 		String api_key = this.dotenv.get("API_KEY");
 		BEClient.initialize(username, api_key);
 		BEBulk bulk = new BEBulk();
-		bulk.subject ="Test mail from blastengine";
-		bulk.text = "Mail body";
+		bulk.subject ="Bluk email with address list from blastengine";
+		bulk.text = "Mail body __name__";
 		bulk.html = "<h1>Hello, from blastengine __name__</h1>";
 		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
 		bulk.setFrom(fromAddress);
 		try {
 			Integer deliveryId = bulk.register();
 			Assert.assertTrue(deliveryId > 0);
-			String basePath = "./src/test/java/jp/blastengine";
-			BEJob job = bulk.importFromFile(basePath + "/example.csv", true);
+			System.out.println(deliveryId);
+			// add 60 recipients
+			for (Integer i = 0; i < 60; i++){
+				Map<String, String> map = new HashMap<>();
+				map.put("name", "User " + i);
+				map.put("code", "0123" + i.toString());
+				bulk.addTo("atsushi+" + i + "@moongift.jp", map);
+			}
+			bulk.update();
 			// bulk.send();
-			System.out.println(job.totalCount);
-			System.out.println(job.successCount);
-			System.out.println(job.failedCount);
-			List<Map<String, String>> errors = job.errors();
-			System.out.println(errors);
 			bulk.delete();
 			System.out.println(bulk.deliveryId);
 		} catch (BEError e) {
