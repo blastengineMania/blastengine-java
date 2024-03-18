@@ -150,8 +150,10 @@ public class BEClient {
 			HttpPatch httpPatch = new HttpPatch("https://app.engn.jp/api" + path);
 			httpPatch.setHeader("Content-type", "application/json; charset=UTF-8");
 			httpPatch.setHeader("Authorization", "Bearer " + this.getToken());
-			StringEntity entity = new StringEntity(json, "UTF-8");
-			httpPatch.setEntity(entity);
+			if (json != null) {
+				StringEntity entity = new StringEntity(json, "UTF-8");
+				httpPatch.setEntity(entity);
+			}
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpResponse response = client.execute(httpPatch);
 			return EntityUtils.toString(response.getEntity());

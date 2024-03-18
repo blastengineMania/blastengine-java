@@ -6,7 +6,8 @@ import java.nio.file.Path;
 import java.net.URISyntaxException;
 import org.junit.jupiter.api.Timeout;
 import java.util.concurrent.TimeUnit;
-
+import java.util.Calendar;
+import java.util.Date;
 // 添付ファイル用
 import java.util.*;
 
@@ -120,4 +121,41 @@ public class BEBulkMailTest {
 		}
 	}
 
+	@Test public void beBulkMailTestCancelTextMail() {
+		String username = this.dotenv.get("USER_NAME");
+		String api_key = this.dotenv.get("API_KEY");
+		BEClient.initialize(username, api_key);
+		BEBulk bulk = new BEBulk();
+		bulk.subject ="Bluk email with address list from blastengine";
+		bulk.text = "Mail body __name__";
+		bulk.html = "<h1>Hello, from blastengine __name__</h1>";
+		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
+		bulk.setFrom(fromAddress);
+		try {
+			Integer deliveryId = bulk.register();
+			Assert.assertTrue(deliveryId > 0);
+			System.out.println(deliveryId);
+			// add 60 recipients
+			for (Integer i = 0; i < 5; i++){
+				Map<String, String> map = new HashMap<>();
+				map.put("name", "User " + i);
+				map.put("code", "0123" + i.toString());
+				bulk.addTo("atsushi+" + i + "@moongift.jp", map);
+			}
+			bulk.update();
+			Calendar calendar = Calendar.getInstance();			
+			calendar.add(Calendar.MINUTE, 5);
+			bulk.send(calendar.getTime());
+			bulk.get();
+			Assert.assertTrue(bulk.status.equals("RESERVE"));
+			bulk.cancel();
+			bulk.get();
+			Assert.assertTrue(bulk.status.equals("EDIT"));
+			bulk.delete();
+			System.out.println(bulk.deliveryId);
+		} catch (BEError e) {
+			System.out.println(e.getMessage());
+			Assert.assertTrue(false);
+		}
+	}
 }

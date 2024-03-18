@@ -99,29 +99,37 @@ public class BEBulk extends BEBase {
 		}
 	}
 
-	public Integer send(Date reservationTime) throws BEError {
-		return this._send(reservationTime);
+	public Integer cancel() throws BEError {
+		String responseJson = BEBulk.client.getHttpPatchResponse("/v1/deliveries/" + this.deliveryId + "/cancel", null);
+		return this.createResponse(responseJson);
 	}
 
-	public Integer send() throws BEError {
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, 1);
-		Date reservationTime = cal.getTime();
-		return this._send(reservationTime);
-	}
-
-	protected Integer _send(Date reservationTime) throws BEError {
+	public Integer _send(Date reservationTime) throws BEError {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.addMixIn(BEBulk.class, BEBulkUpdateView.class);
 			Map<String, String> obj = new HashMap<>();
-			SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-			obj.put("reservation_time", sf.format(reservationTime));
+			if (reservationTime == null) {
+			} else {
+				SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+				obj.put("reservation_time", sf.format(reservationTime));
+			}
 			String json = mapper.writeValueAsString(obj);
-			String responseJson = BEBulk.client.getHttpPatchResponse("/v1/deliveries/bulk/commit/" + this.deliveryId, json);
+			String path = "/v1/deliveries/bulk//commit/" + this.deliveryId;
+			if (reservationTime == null) {
+				path += "/immidiate";
+			}
+			String responseJson = BEBulk.client.getHttpPatchResponse(path, json);
 			return this.createResponse(responseJson);
 		} catch (JsonProcessingException e) {
 			throw new BEError("[JsonProcessingException] " + e.getMessage());
 		}
+	}
+
+	public Integer send() throws BEError {
+		return this._send(null);
+	}
+	public Integer send(Date reservationTime) throws BEError {
+		return this._send(reservationTime);
 	}
 }
