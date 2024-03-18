@@ -1,6 +1,11 @@
 package jp.blastengine;
 import org.junit.Assert;
 import org.junit.Test;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.net.URISyntaxException;
+import org.junit.jupiter.api.Timeout;
+import java.util.concurrent.TimeUnit;
 
 // 添付ファイル用
 import java.util.*;
@@ -13,18 +18,19 @@ public class BEBulkMailTest {
 		String username = this.dotenv.get("USER_NAME");
 		String api_key = this.dotenv.get("API_KEY");
 		BEClient.initialize(username, api_key);
+
+			/*
 		Integer base = 270;
 		for (Integer i = 0; i <= 10; i++){
 			BEBulk bulk = new BEBulk();
-			bulk.deliverId = i + base;
-			/*
+			bulk.deliveryId = i + base;
 			try {
 				Integer deliveryId = bulk.delete();
 			} catch (BEError e) {
 				System.out.println(e.getMessage());
 			}
-			*/
 		}
+			*/
 	}
 	@Test public void beBulkMailTestSendTextMail() {
 		String username = this.dotenv.get("USER_NAME");
@@ -47,10 +53,69 @@ public class BEBulkMailTest {
 			bulk.addTo("atsushi2@moongift.jp", map);
 			bulk.update();
 			bulk.send();
-			System.out.println(bulk.deliverId);
+			System.out.println(bulk.deliveryId);
 		} catch (BEError e) {
 			System.out.println(e.getMessage());
 			Assert.assertTrue(false);
 		}
 	}
+
+	@Test public void beBulkMailTestSendTextMailWithCSVImportFromFile() {
+		String username = this.dotenv.get("USER_NAME");
+		String api_key = this.dotenv.get("API_KEY");
+		BEClient.initialize(username, api_key);
+		BEBulk bulk = new BEBulk();
+		bulk.subject ="Test mail from blastengine";
+		bulk.text = "Mail body";
+		bulk.html = "<h1>Hello, from blastengine __name__</h1>";
+		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
+		bulk.setFrom(fromAddress);
+		try {
+			Integer deliveryId = bulk.register();
+			Assert.assertTrue(deliveryId > 0);
+			String basePath = "./src/test/java/jp/blastengine";
+			BEJob job = bulk.importFromFile(basePath + "/example.csv", true);
+			// bulk.send();
+			System.out.println(job.totalCount);
+			System.out.println(job.successCount);
+			System.out.println(job.failedCount);
+			List<Map<String, String>> errors = job.errors();
+			System.out.println(errors);
+			bulk.delete();
+			System.out.println(bulk.deliveryId);
+		} catch (BEError e) {
+			System.out.println(e.getMessage());
+			Assert.assertTrue(false);
+		}
+	}
+
+	@Test public void beBulkMailTestSendTextMailWithCSVImportFromList() {
+		String username = this.dotenv.get("USER_NAME");
+		String api_key = this.dotenv.get("API_KEY");
+		BEClient.initialize(username, api_key);
+		BEBulk bulk = new BEBulk();
+		bulk.subject ="Test mail from blastengine";
+		bulk.text = "Mail body";
+		bulk.html = "<h1>Hello, from blastengine __name__</h1>";
+		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
+		bulk.setFrom(fromAddress);
+		try {
+			Integer deliveryId = bulk.register();
+			Assert.assertTrue(deliveryId > 0);
+			String basePath = "./src/test/java/jp/blastengine";
+			BEJob job = bulk.importFromFile(basePath + "/example.csv", true);
+			// bulk.send();
+			System.out.println(job.totalCount);
+			System.out.println(job.successCount);
+			System.out.println(job.failedCount);
+			List<Map<String, String>> errors = job.errors();
+			System.out.println(errors);
+			bulk.delete();
+			System.out.println(bulk.deliveryId);
+		} catch (BEError e) {
+			System.out.println(e.getMessage());
+			Assert.assertTrue(false);
+		}
+	}
+
 }

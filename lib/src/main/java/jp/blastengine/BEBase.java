@@ -11,7 +11,7 @@ public class BEBase {
 	@JsonIgnore
 	public static BEClient client;
 	@JsonIgnore
-	public Integer deliverId;
+	public Integer deliveryId;
 	public String subject;
 	@JsonProperty("text_part")
 	public String text;
@@ -55,8 +55,14 @@ public class BEBase {
 					throw new BEError("[blastengine response error: " + key + "] " + String.join(",",messages));
 				}
 			}
-			this.deliverId = (Integer) map.get("delivery_id");
-			return this.deliverId;
+			if (map.containsKey("delivery_id")) {
+				this.deliveryId = (Integer) map.get("delivery_id");
+				return this.deliveryId;
+			}
+			if (map.containsKey("job_id")) {
+				return (Integer) map.get("job_id");
+			}
+			throw new BEError("[blastengine response error] " + json);
 		} catch (NullPointerException e) {
 			throw new BEError("[NullPointerException] " + e.getMessage());
 		} catch (ClassCastException e) {
@@ -67,7 +73,7 @@ public class BEBase {
 	}
 
 	public Integer delete() throws BEError {
-		String responseJson = BEBulk.client.getHttpDeleteResponse("/v1/deliveries/" + this.deliverId);
+		String responseJson = BEBulk.client.getHttpDeleteResponse("/v1/deliveries/" + this.deliveryId);
 		return this.createResponse(responseJson);
 	}
 

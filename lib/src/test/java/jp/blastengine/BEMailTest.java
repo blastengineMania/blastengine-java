@@ -77,4 +77,5 @@ public class BEMailTest {
 			System.out.println(e.getMessage());
 		}
 	}
+
 }

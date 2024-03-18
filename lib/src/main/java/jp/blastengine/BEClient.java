@@ -5,6 +5,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -26,6 +27,13 @@ import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 
+// Zip
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
+
 public class BEClient {
 	protected String userName;
 	protected String apiKey;
@@ -44,6 +52,25 @@ public class BEClient {
 	public String getToken() {
 		String digest = DigestUtils.sha256Hex(this.userName + this.apiKey);
 		return new String(Base64.getEncoder().encode(digest.toLowerCase().getBytes()));
+	}
+	
+	// Send HTTP Get
+	public String getHttpGetResponse(String path) throws BEError {
+		try {
+			HttpGet httpGet = new HttpGet("https://app.engn.jp/api" + path);
+			httpGet.setHeader("Authorization", "Bearer " + this.getToken());
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpResponse response = client.execute(httpGet);
+			// もしZipファイルなら、伸張する
+			if (response.getFirstHeader("Content-Type").getValue().startsWith("application/zip")) {
+				return this.expandZipContent(response);
+			}
+			return EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			throw new BEError("[ClientProtocolException] " + e.getMessage());
+		} catch (IOException e) {
+			throw new BEError("[IOException] " + e.getMessage());
+		}
 	}
 
 	// Send HTTP Post with JSON
@@ -146,6 +173,29 @@ public class BEClient {
 			return EntityUtils.toString(response.getEntity());
 		} catch (ClientProtocolException e) {
 			throw new BEError("[ClientProtocolException] " + e.getMessage());
+		} catch (IOException e) {
+			throw new BEError("[IOException] " + e.getMessage());
+		}
+	}
+
+	private String expandZipContent(HttpResponse response) throws BEError {
+		try {
+			// レスポンスを受け取る
+			byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+			ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(bytes));
+			ZipEntry entry = zipIn.getNextEntry();
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			byte[] buffer = new byte[1024];
+			int len;
+			while ((len = zipIn.read(buffer)) > 0) {
+				outputStream.write(buffer, 0, len);
+			}
+			// 解凍した内容を文字列として取得
+			String content = outputStream.toString("UTF-8");
+			zipIn.closeEntry();
+			zipIn.close();
+			outputStream.close();
+			return content;
 		} catch (IOException e) {
 			throw new BEError("[IOException] " + e.getMessage());
 		}

@@ -29,6 +29,32 @@ public class BEBulk extends BEBase {
 		this.to.add(new BEBulkAddress(mailAddress, insertCode));
 	}
 
+	public BEJob importFromFile(String path) throws BEError {
+		BEJob job = BEJob.emailUpload(this, path, false, false);
+		return this._waitJob(job);
+	}
+
+	public BEJob importFromFile(String path, boolean ignoreErrors) throws BEError {
+		BEJob job = BEJob.emailUpload(this, path, ignoreErrors, false);
+		return this._waitJob(job);
+	}
+
+	public BEJob importFromFile(String path, boolean ignoreErrors, boolean immediate) throws BEError {
+		BEJob job = BEJob.emailUpload(this, path, ignoreErrors, immediate);
+		return this._waitJob(job);
+	}
+
+	public BEJob _waitJob(BEJob job) throws BEError {
+		while (job.finish() == false) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				throw new BEError("[InterruptedException] " + e.getMessage());
+			}
+		}
+		return job;
+	}
+
 	public List<BEBulkAddress> getTo() {
 		return this.to;
 	}
@@ -50,7 +76,7 @@ public class BEBulk extends BEBase {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.addMixIn(BEBulk.class, BEBulkUpdateView.class);
 			String json = mapper.writeValueAsString(this);
-			String responseJson = BEBulk.client.getHttpPutResponse("/v1/deliveries/bulk/update/" + this.deliverId, json);
+			String responseJson = BEBulk.client.getHttpPutResponse("/v1/deliveries/bulk/update/" + this.deliveryId, json);
 			return this.createResponse(responseJson);
 		} catch (JsonProcessingException e) {
 			throw new BEError("[JsonProcessingException] " + e.getMessage());
@@ -76,7 +102,7 @@ public class BEBulk extends BEBase {
 			SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 			obj.put("reservation_time", sf.format(reservationTime));
 			String json = mapper.writeValueAsString(obj);
-			String responseJson = BEBulk.client.getHttpPatchResponse("/v1/deliveries/bulk/commit/" + this.deliverId, json);
+			String responseJson = BEBulk.client.getHttpPatchResponse("/v1/deliveries/bulk/commit/" + this.deliveryId, json);
 			return this.createResponse(responseJson);
 		} catch (JsonProcessingException e) {
 			throw new BEError("[JsonProcessingException] " + e.getMessage());

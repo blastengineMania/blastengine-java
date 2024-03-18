@@ -11,7 +11,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-version '0.0.3'
+version '0.0.4'
 
 apply plugin: 'java'
 
@@ -35,15 +35,17 @@ dependencies {
     implementation 'com.google.guava:guava:30.1.1-jre'
     implementation 'org.wso2.apache.httpcomponents:httpmime:4.3.1.wso2v1'
     testImplementation 'io.github.cdimascio:java-dotenv:5.2.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.2'
+
 }
+
 
 jar {
     manifest {
         attributes 'Main-Class': 'jp.blastengine.BEClient'
     }
-    baseName 'blastengine'
 }
 
 shadowJar{
-    archiveFileName = "blastengine-${version}.${extension}"
+    archiveFileName = "blastengine-${version}.jar"
 }
