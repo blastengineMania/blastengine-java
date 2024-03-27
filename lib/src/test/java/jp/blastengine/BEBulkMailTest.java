@@ -39,7 +39,7 @@ public class BEBulkMailTest {
 		BEClient.initialize(username, api_key);
 
 		BEBulk bulk = new BEBulk();
-		bulk.subject ="Test mail from blastengine";
+		bulk.subject ="Test bulk mail from blastengine";
 		bulk.text = "Mail body";
 		bulk.html = "<h1>Hello, from blastengine __name__</h1>";
 		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
@@ -66,7 +66,7 @@ public class BEBulkMailTest {
 		String api_key = this.dotenv.get("API_KEY");
 		BEClient.initialize(username, api_key);
 		BEBulk bulk = new BEBulk();
-		bulk.subject ="Test mail from blastengine";
+		bulk.subject ="Test bulk mail from blastengine w/ csv import";
 		bulk.text = "Mail body";
 		bulk.html = "<h1>Hello, from blastengine __name__</h1>";
 		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");

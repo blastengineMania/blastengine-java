@@ -22,6 +22,8 @@ public class BEBase {
 	@JsonProperty("html_part")
 	public String html;
 	public String encode = "UTF-8";
+	@JsonIgnore
+	public List<String> attachments = new ArrayList<String>();
 
 	@JsonIgnore
 	public String status;

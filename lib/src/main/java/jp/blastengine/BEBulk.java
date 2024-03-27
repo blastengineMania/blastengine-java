@@ -18,8 +18,6 @@ interface BEBulkUpdateView {
 public class BEBulk extends BEBase {
 
 	public List<BEBulkAddress> to = new ArrayList<BEBulkAddress>();
-	@JsonIgnore
-	public List<String> attachments = new ArrayList<String>();
 
 	public void addTo(String mailAddress) {
 		this.to.add(new BEBulkAddress(mailAddress));
@@ -115,9 +113,9 @@ public class BEBulk extends BEBase {
 				obj.put("reservation_time", sf.format(reservationTime));
 			}
 			String json = mapper.writeValueAsString(obj);
-			String path = "/v1/deliveries/bulk//commit/" + this.deliveryId;
+			String path = "/v1/deliveries/bulk/commit/" + this.deliveryId;
 			if (reservationTime == null) {
-				path += "/immidiate";
+				path += "/immediate";
 			}
 			String responseJson = BEBulk.client.getHttpPatchResponse(path, json);
 			return this.createResponse(responseJson);

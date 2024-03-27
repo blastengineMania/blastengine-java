@@ -14,8 +14,6 @@ public class BETransaction extends BEBase {
 
 	@JsonProperty("insert_code")
 	public List<Map<String, String>> insertCode = new ArrayList<Map<String, String>>();
-	@JsonIgnore
-	public List<String> attachments = new ArrayList<String>();
 
 	public void addTo(String mailAddress) {
 		this.to.add(mailAddress);
