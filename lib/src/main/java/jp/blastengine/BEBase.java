@@ -166,6 +166,11 @@ public class BEBase {
 		}
 	}
 
+	public Integer cancel() throws BEError {
+		String responseJson = BEBulk.client.getHttpPatchResponse("/v1/deliveries/" + this.deliveryId + "/cancel", null);
+		return this.createResponse(responseJson);
+	}
+
 	public Integer delete() throws BEError {
 		String responseJson = BEBulk.client.getHttpDeleteResponse("/v1/deliveries/" + this.deliveryId);
 		return this.createResponse(responseJson);

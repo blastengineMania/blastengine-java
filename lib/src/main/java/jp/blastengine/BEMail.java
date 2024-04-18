@@ -116,9 +116,10 @@ public class BEMail extends BEBase {
       bulk.attachments = this.attachments;
       bulk.setFrom(this.from);
       bulk.register();
+      this.deliveryId = bulk.deliveryId;
       bulk.to = this.to;
       bulk.update();
-      return bulk.send();
+      return bulk.send(reservationTime);
     } catch (BEError e) {
       throw new BEError("[BEError] " + e.getMessage());
     }
@@ -143,7 +144,10 @@ public class BEMail extends BEBase {
       transaction.cc = this.cc;
       transaction.bcc = this.bcc;
       transaction.encode = this.encode;
-      return transaction.send();
+      // get deliveryId
+      Integer deliveryId = transaction.send();
+      this.deliveryId = deliveryId;
+      return deliveryId;
     } catch (BEError e) {
       throw new BEError("[sendAsTransactionException] " + e.getMessage());
     }

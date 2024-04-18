@@ -57,4 +57,35 @@ public class BEMailTest {
 		}
 	}
 
+	@Test public void beMailTestCancelTextMail() {
+		String username = this.dotenv.get("USER_NAME");
+		String api_key = this.dotenv.get("API_KEY");
+		BEClient.initialize(username, api_key);
+		BEMail mail = new BEMail();
+		mail.subject ="Test mail from blastengine";
+		mail.text = "Mail body";
+		mail.html = "<h1>Hello, from blastengine</h1>";
+		BEMailAddress fromAddress = new BEMailAddress(this.dotenv.get("FROM"), "Admin");
+		mail.setFrom(fromAddress);
+		mail.addTo(this.dotenv.get("TO"));
+		try {
+			// Make 30 seconds later now
+			Calendar cal = Calendar.getInstance();
+			cal.add(Calendar.SECOND, 30);
+			Integer deliveryId = mail.send(cal.getTime());
+			Assert.assertTrue(deliveryId > 0);
+			mail.get();
+			// Check mail status is RESERVE
+			System.out.println(mail.status);
+			Assert.assertTrue(mail.status.equals("RESERVE"));
+			mail.cancel();
+			mail.get();
+			// Check mail status is EDIT
+			Assert.assertTrue(mail.status.equals("EDIT"));
+		} catch (BEError e) {
+			System.out.println(e.getMessage());
+			Assert.assertTrue(false);
+		}
+	}
+
 }
